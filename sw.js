@@ -3,7 +3,7 @@
    Bump VERSION on every asset change to invalidate old caches.
    ============================================================ */
 
-const VERSION = 'nyika-v1';
+const VERSION = 'nyika-v2';
 const PRECACHE = `precache-${VERSION}`;
 const RUNTIME = `runtime-${VERSION}`;
 

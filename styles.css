@@ -272,12 +272,162 @@ em { font-style: italic; }
   transform-origin: left;
 }
 
+.nav__actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+/* Hamburger toggle — hidden on desktop, revealed at the tablet breakpoint */
+.nav__toggle {
+  display: none;
+  width: 44px;
+  height: 44px;
+  align-items: center;
+  justify-content: center;
+  color: var(--cream);
+  transition: color 0.4s;
+}
+.nav--scrolled .nav__toggle { color: var(--dark); }
+.nav__toggle-bars {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 24px;
+  height: 16px;
+}
+.nav__toggle-bars span {
+  display: block;
+  height: 1.5px;
+  width: 100%;
+  background: currentColor;
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.3s;
+}
+.nav__toggle[aria-expanded="true"] .nav__toggle-bars span:nth-child(1) {
+  transform: translateY(6.5px) rotate(45deg);
+}
+.nav__toggle[aria-expanded="true"] .nav__toggle-bars span:nth-child(2) { opacity: 0; }
+.nav__toggle[aria-expanded="true"] .nav__toggle-bars span:nth-child(3) {
+  transform: translateY(-6.5px) rotate(-45deg);
+}
+
 @media (max-width: 900px) {
   .nav__links { display: none; }
+  .nav__toggle { display: flex; }
 }
 @media (max-width: 640px) {
   .nav__cta { padding: 10px 18px; font-size: 10px; }
   .nav__tagline { display: none; }
+}
+@media (max-width: 420px) {
+  .nav__cta { display: none; }
+}
+
+/* ============================================================
+   MOBILE MENU
+   ============================================================ */
+
+.mobile-menu {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: none;
+}
+.mobile-menu.is-open { display: block; }
+.mobile-menu__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(26, 20, 12, 0.6);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+.mobile-menu.is-open .mobile-menu__backdrop { opacity: 1; }
+.mobile-menu__panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 100%;
+  width: min(420px, 86vw);
+  background: var(--dark);
+  color: var(--cream);
+  padding: 32px var(--pad) 40px;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  transform: translateX(100%);
+  transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+  border-left: 1px solid rgba(232, 168, 114, 0.18);
+}
+.mobile-menu.is-open .mobile-menu__panel { transform: translateX(0); }
+
+.mobile-menu__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 28px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid rgba(242, 237, 226, 0.12);
+}
+.mobile-menu__close {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid rgba(242, 237, 226, 0.25);
+  color: var(--cream);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+}
+.mobile-menu__close:hover { background: var(--rust); border-color: var(--rust); }
+.mobile-menu__close span { font-size: 26px; line-height: 1; }
+
+.mobile-menu__links {
+  display: flex;
+  flex-direction: column;
+  padding: 20px 0;
+}
+.mobile-menu__links a {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  padding: 18px 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.9rem, 8vw, 2.6rem);
+  font-weight: 300;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  border-bottom: 1px solid rgba(242, 237, 226, 0.08);
+  transition: color 0.3s, padding-left 0.3s;
+}
+.mobile-menu__links a:hover,
+.mobile-menu__links a:focus-visible { color: var(--ochre); padding-left: 8px; }
+.mobile-menu__num {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  opacity: 0.5;
+  flex-shrink: 0;
+}
+.mobile-menu__cta { margin-top: 28px; justify-content: center; }
+.mobile-menu__cta:hover { background: var(--rust); }
+.mobile-menu__meta {
+  margin-top: auto;
+  padding-top: 32px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 2;
+  letter-spacing: 0.04em;
+  opacity: 0.7;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mobile-menu__panel,
+  .mobile-menu__backdrop { transition: none; }
 }
 
 /* ============================================================

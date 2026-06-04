@@ -69,6 +69,43 @@
   const $$ = (sel, ctx = document) => Array.from(ctx.querySelectorAll(sel));
   const fmt = (n) => '$' + Math.round(n).toLocaleString();
 
+  // ---------- FOCUS MANAGEMENT (a11y) ----------
+  // A single "active overlay panel" is trapped at a time (booking modal,
+  // confirmation modal, or mobile menu). Tab cycles within it; focus is moved
+  // in on open and restored to the triggering element on close.
+  const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
+  let activePanel = null;
+  let lastFocused = null;
+
+  const getFocusable = (root) =>
+    $$(FOCUSABLE, root).filter((el) => el.offsetParent !== null || el === document.activeElement);
+
+  const focusFirst = (panel) => {
+    const f = getFocusable(panel);
+    (f[0] || panel).focus();
+  };
+
+  const restoreFocus = () => {
+    if (lastFocused && typeof lastFocused.focus === 'function') lastFocused.focus();
+    lastFocused = null;
+  };
+
+  // Global Tab-trap for whichever overlay is currently open.
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Tab' || !activePanel) return;
+    const f = getFocusable(activePanel);
+    if (!f.length) return;
+    const first = f[0];
+    const last = f[f.length - 1];
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  });
+
   // ---------- NAV SCROLL ----------
   const nav = $('#nav');
   const handleScroll = () => {
@@ -152,25 +189,37 @@
   };
 
   const openModal = () => {
+    lastFocused = document.activeElement;
     modal.classList.add('is-open');
     modal.setAttribute('aria-hidden', 'false');
     document.body.style.overflow = 'hidden';
+    activePanel = $('.modal__panel', modal);
+    focusFirst(activePanel);
   };
 
   const closeModal = () => {
     modal.classList.remove('is-open');
     modal.setAttribute('aria-hidden', 'true');
     document.body.style.overflow = '';
+    activePanel = null;
+    restoreFocus();
   };
 
   const openConfirm = () => {
+    lastFocused = document.activeElement;
     confirmModal.classList.add('is-open');
+    confirmModal.setAttribute('aria-hidden', 'false');
     document.body.style.overflow = 'hidden';
+    activePanel = $('.modal__panel', confirmModal);
+    focusFirst(activePanel);
   };
 
   const closeConfirm = () => {
     confirmModal.classList.remove('is-open');
+    confirmModal.setAttribute('aria-hidden', 'true');
     document.body.style.overflow = '';
+    activePanel = null;
+    restoreFocus();
   };
 
   // Attach tour reserve buttons
@@ -188,10 +237,43 @@
   $$('[data-close]').forEach((el) => el.addEventListener('click', closeModal));
   $$('[data-close-confirm]').forEach((el) => el.addEventListener('click', closeConfirm));
 
+  // ---------- MOBILE MENU ----------
+  const mobileMenu = $('#mobileMenu');
+  const navToggle = $('#navToggle');
+
+  const openMenu = () => {
+    lastFocused = document.activeElement;
+    mobileMenu.classList.add('is-open');
+    mobileMenu.setAttribute('aria-hidden', 'false');
+    navToggle.setAttribute('aria-expanded', 'true');
+    document.body.style.overflow = 'hidden';
+    activePanel = $('.mobile-menu__panel', mobileMenu);
+    focusFirst(activePanel);
+  };
+
+  const closeMenu = () => {
+    if (!mobileMenu.classList.contains('is-open')) return;
+    mobileMenu.classList.remove('is-open');
+    mobileMenu.setAttribute('aria-hidden', 'true');
+    navToggle.setAttribute('aria-expanded', 'false');
+    document.body.style.overflow = '';
+    activePanel = null;
+    restoreFocus();
+  };
+
+  navToggle.addEventListener('click', openMenu);
+  $$('[data-close-menu]').forEach((el) => el.addEventListener('click', closeMenu));
+
+  // Collapse the menu if the viewport grows past the mobile breakpoint.
+  window.addEventListener('resize', () => {
+    if (window.innerWidth > 900) closeMenu();
+  }, { passive: true });
+
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       if (modal.classList.contains('is-open')) closeModal();
       if (confirmModal.classList.contains('is-open')) closeConfirm();
+      if (mobileMenu.classList.contains('is-open')) closeMenu();
     }
   });
 
