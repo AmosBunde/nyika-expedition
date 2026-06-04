@@ -401,3 +401,14 @@
   // ---------- INITIAL STATE ----------
   updateNextButtonState();
 })();
+
+// ---------- SERVICE WORKER (offline-first PWA) ----------
+// Registered with a relative path so the scope is correct whether the site is
+// served from a domain root or a GitHub Pages project subpath (/nyika-expedition/).
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(() => {
+      /* Registration failures are non-fatal — the site works without the SW. */
+    });
+  });
+}

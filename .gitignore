@@ -1,0 +1,19 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Tooling / CI caches (dev + GitHub Actions only — not part of the site)
+node_modules/
+.lighthouseci/
+.cache/
+_site/
+
+# Packaged artifacts (do not ship a zip of the site)
+*.zip

@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://amosbunde.github.io/nyika-expedition/sitemap.xml

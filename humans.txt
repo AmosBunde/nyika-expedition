@@ -1,0 +1,10 @@
+/* TEAM */
+  Outfitter: Nyika Expeditions Ltd.
+  Location: Nairobi, Kenya
+  Contact: dossier@nyika.co.ke
+
+/* SITE */
+  Standards: HTML5, CSS3, ES2020
+  Components: Service Worker, Web App Manifest, schema.org structured data
+  Fonts: Fraunces, Inter, JetBrains Mono (SIL OFL)
+  Photography: Unsplash
