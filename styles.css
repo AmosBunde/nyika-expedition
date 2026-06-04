@@ -391,9 +391,7 @@ em { font-style: italic; }
   padding: 20px 0;
 }
 .mobile-menu__links a {
-  display: flex;
-  align-items: baseline;
-  gap: 16px;
+  display: block;
   padding: 18px 0;
   font-family: var(--font-display);
   font-size: clamp(1.9rem, 8vw, 2.6rem);
@@ -405,14 +403,6 @@ em { font-style: italic; }
 }
 .mobile-menu__links a:hover,
 .mobile-menu__links a:focus-visible { color: var(--ochre); padding-left: 8px; }
-.mobile-menu__num {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.25em;
-  text-transform: uppercase;
-  opacity: 0.5;
-  flex-shrink: 0;
-}
 .mobile-menu__cta { margin-top: 28px; justify-content: center; }
 .mobile-menu__cta:hover { background: var(--rust); }
 .mobile-menu__meta {
