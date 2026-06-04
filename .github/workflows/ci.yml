@@ -1,0 +1,64 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Lint & validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: JavaScript syntax check
+        run: |
+          node --check script.js
+          node --check sw.js
+
+      - name: Validate JSON / manifest / JSON-LD
+        run: |
+          node -e "JSON.parse(require('fs').readFileSync('site.webmanifest','utf8'))"
+          node -e "const h=require('fs').readFileSync('index.html','utf8');const m=h.match(/<script type=\"application\/ld\+json\">([\s\S]*?)<\/script>/);if(!m)throw new Error('no JSON-LD');JSON.parse(m[1]);console.log('JSON-LD OK')"
+
+      - name: Validate sitemap XML
+        run: python3 -c "import xml.dom.minidom; xml.dom.minidom.parse('sitemap.xml'); print('sitemap OK')"
+
+      - name: HTML validation
+        run: npx --yes html-validate@9 "**/*.html"
+
+      - name: CSS lint
+        run: npx --yes stylelint@16 "**/*.css"
+
+  lighthouse:
+    name: Lighthouse CI
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run Lighthouse CI
+        uses: treosh/lighthouse-ci-action@v12
+        with:
+          configPath: ./lighthouserc.json
+          uploadArtifacts: true
+          temporaryPublicStorage: true
+        continue-on-error: true
+
+  links:
+    name: Link check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check for broken links
+        uses: lycheeverse/lychee-action@v2
+        with:
+          args: --no-progress --exclude-mail --accept 200,206,403,429 "./**/*.html"
+          fail: false

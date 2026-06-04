@@ -1,0 +1,4 @@
+Contact: mailto:security@nyika.co.ke
+Expires: 2027-06-04T00:00:00.000Z
+Preferred-Languages: en
+Canonical: https://amosbunde.github.io/nyika-expedition/.well-known/security.txt
