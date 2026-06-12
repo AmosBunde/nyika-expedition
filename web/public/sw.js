@@ -1,29 +1,20 @@
 /* ============================================================
    NYIKA EXPEDITIONS — Service Worker (offline-first PWA)
-   Bump VERSION on every asset change to invalidate old caches.
+   Bump VERSION on every release to invalidate old caches.
+   The app now ships content-hashed asset bundles, so we only
+   precache the navigable shell and let same-origin assets be
+   cached at runtime (stale-while-revalidate) as they are first
+   requested. Relative paths keep scope correct under the
+   GitHub Pages project subpath (/nyika-expedition/).
    ============================================================ */
 
-const VERSION = 'nyika-v2';
+const VERSION = 'nyika-v3';
 const PRECACHE = `precache-${VERSION}`;
 const RUNTIME = `runtime-${VERSION}`;
 
-// Same-origin core shell, precached on install. Relative paths keep this
-// correct under a GitHub Pages project subpath (/nyika-expedition/).
-const PRECACHE_URLS = [
-  './',
-  './index.html',
-  './styles.css',
-  './script.js',
-  './site.webmanifest',
-  './favicon.svg',
-  './favicon-32.png',
-  './apple-touch-icon.png',
-  './icon-192.png',
-  './icon-512.png',
-  './privacy.html',
-  './terms.html',
-  './404.html'
-];
+// Only stable, always-present URLs — addAll() rejects the whole install if any
+// entry 404s, so hashed bundles are intentionally left to runtime caching.
+const PRECACHE_URLS = ['./', './index.html'];
 
 const RUNTIME_ORIGINS = [
   'https://fonts.googleapis.com',
@@ -84,10 +75,10 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Same-origin static assets: stale-while-revalidate.
+  // Same-origin static assets (hashed JS/CSS): stale-while-revalidate.
   if (url.origin === self.location.origin) {
     event.respondWith(
-      caches.open(PRECACHE).then((cache) =>
+      caches.open(RUNTIME).then((cache) =>
         cache.match(request).then((cached) => {
           const network = fetch(request)
             .then((response) => {

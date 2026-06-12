@@ -1,118 +1,137 @@
 # Nyika Expeditions
 
-A production-ready static website for a Kenya-based safari outfitter. Editorial expedition aesthetic, real Kenya photography from Unsplash, four signature tours (Maasai Mara, Amboseli, Samburu, Laikipia), and a four-step booking flow with airport transfer selection.
+A production-grade marketing site for a Kenya-based safari outfitter. Editorial
+premium-travel aesthetic, real Kenya photography from Unsplash, four signature
+expeditions (Maasai Mara, Amboseli, Samburu, Laikipia), and a four-step booking
+flow with airport-transfer selection and live pricing.
 
-## Contents
+Built as a **React** app and shipped as **prerendered static HTML** to GitHub
+Pages — so it keeps the SEO and first-paint of a static site while gaining a
+real component architecture.
+
+## Stack
+
+- **React 19** + **React Router 7** (framework mode, `ssr: false` + prerender → SSG)
+- **TypeScript**, **Vite 8**
+- **Tailwind CSS v4** + **shadcn/ui** (Radix primitives)
+- Output is fully static; no server runtime at deploy time.
+
+## Project layout
 
 ```
-nyika-expeditions/
-├── index.html       Main page (all sections, booking modal, confirmation)
-├── styles.css       Complete stylesheet
-├── script.js        Booking flow logic and UI interactions
-└── README.md        This file
+.
+├── web/                        The application (all source lives here)
+│   ├── app/
+│   │   ├── root.tsx            HTML shell: CSP, fonts, icons, manifest, JSON-LD
+│   │   ├── routes.ts           Route table (home, /privacy, /terms, * 404)
+│   │   ├── routes/             home.tsx, privacy.tsx, terms.tsx, $.tsx
+│   │   ├── components/         Nav, Hero, Expeditions, BookingModal, sections…
+│   │   │   └── ui/             shadcn primitives
+│   │   ├── lib/                tours.ts (data + pricing), use-scroll.ts, utils.ts
+│   │   └── app.css             Design tokens (Tailwind v4 @theme) + base styles
+│   ├── public/                 favicons, manifest, robots, sitemap, sw.js, .well-known
+│   ├── lighthouserc.json       Lighthouse CI config (subpath-aware)
+│   └── package.json
+└── .github/workflows/          ci.yml (typecheck/build/audit) + deploy.yml (Pages)
 ```
 
-## Quick Preview (Local)
-
-No build step needed. Just open `index.html` in a browser, or serve the folder:
+## Local development
 
 ```bash
-# Python 3
-python3 -m http.server 8000
-
-# Node (with npx)
-npx serve .
-
-# PHP
-php -S localhost:8000
+cd web
+npm install
+npm run dev        # http://localhost:5173/nyika-expedition/
 ```
 
-Then visit `http://localhost:8000`.
+Other scripts:
 
-## Deployment
-
-This is a pure static site. Deploy to any of the following in under five minutes:
-
-### Netlify (drag and drop)
-1. Go to `app.netlify.com`
-2. Drag the `nyika-expeditions` folder onto the deployment area
-3. Site is live with a free subdomain; add a custom domain in settings
-
-### Vercel
 ```bash
-npm i -g vercel
-cd nyika-expeditions
-vercel
+npm run typecheck  # react-router typegen && tsc
+npm run build      # prerender to build/client/
+npm run preview    # serve the production build
 ```
 
-### GitHub Pages
-1. Create a new GitHub repo, push the contents
-2. Settings → Pages → Source: `main` branch, `/` root
-3. Site lives at `https://<username>.github.io/<repo-name>`
+## Deployment (GitHub Pages, via Actions)
 
-### Cloudflare Pages
-1. Push to GitHub (as above)
-2. `dash.cloudflare.com` → Pages → Connect to Git
-3. Framework preset: None. Build output: `/`
+`.github/workflows/deploy.yml` runs on every push to `main`: it builds the app,
+flattens the prerendered routes to the publish root, maps the SPA fallback to
+`404.html`, writes `.nojekyll`, and deploys with the official Pages actions.
+Enable it once under **Settings → Pages → Build and deployment → Source: GitHub
+Actions**.
 
-## Deploy via GitHub Actions (recommended)
+The site is served from a **project subpath** (`/nyika-expedition/`). That path
+is configured in `web/vite.config.ts` (`base`) and `web/react-router.config.ts`
+(`basename`); change both if the repo name changes.
 
-This repo ships a CI/CD pipeline under `.github/workflows/`:
+`ci.yml` runs on every push/PR: a blocking **build** job (typecheck + prerender +
+content assertions) and a non-blocking **audit** job (lychee link-check +
+Lighthouse CI against the prerendered routes).
 
-- **`deploy.yml`** — on every push to `main`, assembles a clean publish directory (excluding dev/CI files and any `*.zip`) and deploys to GitHub Pages via the official Pages actions. Enable it once under **Settings → Pages → Build and deployment → Source: GitHub Actions**.
-- **`ci.yml`** — on every push and pull request: JS syntax check, JSON / manifest / JSON-LD validation, sitemap XML validation, HTML validation (`html-validate`), CSS lint (`stylelint`), a Lighthouse CI run (performance/a11y/SEO/best-practices), and a broken-link check.
-
-No build step and no committed `node_modules`: the lint tools are fetched on demand via `npx` in CI only. The deployed site stays pure static HTML/CSS/JS.
-
-## Production Hardening
-
-This site is configured for production deployment. What's included:
+## Production hardening
 
 ### Security
-- **Content Security Policy** delivered via `<meta http-equiv>` (GitHub Pages cannot set HTTP headers). It pins `script-src 'self'`, `object-src 'none'`, `base-uri 'self'`, and explicitly allowlists only Google Fonts and Unsplash. There are **no inline scripts or inline styles**, so the CSP needs no `'unsafe-inline'`.
-- `referrer` policy, `color-scheme`, and `theme-color` meta.
-- **Known limitation:** `frame-ancestors` (clickjacking), `Strict-Transport-Security` (HSTS), and `X-Content-Type-Options` **cannot** be set from a `<meta>` tag — they require real HTTP response headers. GitHub Pages does not let you set those. To get them, front the site with **Cloudflare (free)** and add a Transform Rule / `_headers` equivalent, or move to a host that supports custom headers (Netlify/Vercel/Cloudflare Pages). A ready-to-use header set is documented below.
-- `/.well-known/security.txt` provides a vulnerability disclosure contact (RFC 9116).
 
-Recommended HTTP headers to add at the edge (Cloudflare/Netlify/Vercel):
+- **Content Security Policy** via `<meta http-equiv>` in `root.tsx`. Everything
+  is locked down (`default-src 'self'`, `object-src 'none'`, `base-uri 'self'`,
+  imagery/fonts allowlisted to Unsplash + Google Fonts) **except** `script-src`
+  and `style-src`, which include `'unsafe-inline'` — required because React
+  Router's streaming-hydration scripts and Radix's inline style attributes
+  cannot be nonce/hash-signed on static GitHub Pages.
+- **Known limitation:** a strict hash/nonce CSP, `frame-ancestors` (clickjacking),
+  HSTS, and `X-Content-Type-Options` need real HTTP response headers, which
+  GitHub Pages cannot set. Front the site with **Cloudflare (free)** or a host
+  that supports custom headers to add:
 
-```
-Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
-X-Content-Type-Options: nosniff
-X-Frame-Options: DENY
-Referrer-Policy: strict-origin-when-cross-origin
-Permissions-Policy: geolocation=(), microphone=(), camera=()
-```
+  ```
+  Content-Security-Policy: ...                 # hash/nonce-based, no 'unsafe-inline'
+  Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: geolocation=(), microphone=(), camera=()
+  ```
 
-### SEO & discoverability
-- Canonical URL, robots meta, Open Graph + Twitter Card tags.
-- **schema.org JSON-LD**: `TravelAgency` (with address, contact, aggregate rating), `WebSite`, and an `ItemList` of the four expeditions as `TouristTrip` offers with prices.
-- `robots.txt` and `sitemap.xml`.
+- `/.well-known/security.txt` provides a vulnerability-disclosure contact (RFC 9116).
 
-### Performance & PWA
-- `site.webmanifest`, full favicon/icon set (SVG + ICO + PNG + Apple touch icon), generated from `favicon.svg`.
-- **Service worker** (`sw.js`): precaches the app shell, runtime-caches fonts and imagery, and serves an offline fallback. Bump `VERSION` in `sw.js` whenever assets change to invalidate old caches.
-- Images carry explicit `width`/`height` (no layout shift), `loading="lazy"`/`eager`, and `decoding="async"`; `preconnect` hints for fonts and Unsplash.
+### SEO & PWA
+
+- Per-route `meta()` (title, description, canonical, OG/Twitter), plus schema.org
+  **JSON-LD** (`TravelAgency`, `WebSite`, `ItemList` of the four expeditions) in
+  `root.tsx`.
+- `robots.txt`, `sitemap.xml`, `site.webmanifest`, full favicon/icon set, and an
+  offline-first **service worker** (`web/public/sw.js`). Bump `VERSION` in the SW
+  when assets change.
 
 ### Accessibility
-- Skip-to-content link, `<main>` landmark, named `<aside>` landmarks, `aria-hidden` on the decorative ticker, keyboard `:focus-visible` rings, and a `prefers-reduced-motion` block. HTML passes `html-validate` (including its WCAG rules) with zero errors.
+
+- Skip links, `<main>` landmark, shadcn/Radix dialogs (focus trap, ESC, ARIA),
+  visible `:focus-visible` rings, WCAG-AA-minded contrast, and a global
+  `prefers-reduced-motion` block.
 
 ### Legal
-- `privacy.html` and `terms.html` (linked in the footer) and a branded `404.html`.
-- **These legal pages are a starting template — have them reviewed by counsel before relying on them.**
 
-### Configuration
+- `/privacy` and `/terms` routes (linked in the footer) and a branded 404.
+- **These are a starting template — have them reviewed by counsel before relying on them.**
 
-The production URL `https://amosbunde.github.io/nyika-expedition/` is referenced in:
-`index.html` (canonical, Open Graph, JSON-LD), `privacy.html`, `terms.html`, `robots.txt`, `sitemap.xml`, and `.well-known/security.txt`.
+## Customization
 
-**Using a custom domain?** Add a `CNAME` file containing your domain, set it under Settings → Pages, then find-and-replace the URL above across those files. Update the `security.txt` contact and the `Expires` date too.
+- **Brand tokens** — `web/app/app.css` (`:root` + `@theme`). Palette is a warm
+  off-white stone canvas with a single deep forest-green accent reserved for CTAs.
+  Fonts: Fraunces (display), Inter (body), JetBrains Mono (accents).
+- **Tours / transfers / tier multipliers** — all data and the pricing logic
+  (`calcTotals`) live in `web/app/lib/tours.ts`. Add or edit an entry there and
+  the cards + booking modal update together.
 
-> Note: `nyika-expeditions.zip` is a stale packaged copy of the site. It is excluded from deploys and git-ignored going forward; you can safely `git rm` it.
+## Wire the booking flow for production
 
-## Images
+The flow currently completes in-browser (a confirmation screen with a random
+reference). To go live, replace the `confirm()` handler in
+`web/app/components/booking-modal.tsx` with a POST to your backend, Formspree,
+or booking provider, using the assembled `form` + `calcTotals(tour, form)`.
 
-All photography is from Unsplash (free license, no attribution required but provided in the footer):
+## Image credits
+
+All photography is from Unsplash (free license; credited in the footer):
 
 | Location | Photographer | Photo ID |
 |---|---|---|
@@ -122,85 +141,7 @@ All photography is from Unsplash (free license, no attribution required but prov
 | Samburu (hills from Lewa) | David Clode | `photo-1535342604578-a175d3fc4f22` |
 | Laikipia (black rhino mother and calf) | David Clode | `photo-1535338454770-8be927b5a00b` |
 
-Images are loaded directly from `images.unsplash.com`. If you prefer to host them locally, download each photo from Unsplash, save to `/images/`, and update the `src` attributes in `index.html` and the image URLs in `script.js`.
-
-## Customization
-
-### Brand
-
-The visual system lives in CSS custom properties at the top of `styles.css`:
-
-```css
-:root {
-  --cream: #F2EDE2;
-  --sand: #EDE6D8;
-  --ochre: #E8A872;
-  --rust: #C05621;
-  --brown: #58341C;
-  --dark: #1A140C;
-
-  --font-display: 'Fraunces', Georgia, serif;
-  --font-body: 'Inter', ..., sans-serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
-}
-```
-
-Change those and the entire site re-palettes cleanly.
-
-### Tours
-
-Edit two places to add, remove, or edit a tour:
-
-1. **`index.html`**: Copy an `<article class="tour">` block in the `.tours` grid and update copy, image, pricing.
-2. **`script.js`**: Add a matching entry to the `TOURS` object at the top.
-
-The `data-tour="..."` attribute on the article must match the key in `TOURS` so the booking modal can look up the right data.
-
-### Transfers
-
-Transfer tiers are defined in both `index.html` (display) and `script.js` (`TRANSFER_NAMES` plus the `data-price` attributes on the radio inputs). Keep them in sync.
-
-### Accommodation multipliers
-
-In `script.js`:
-
-```js
-const TIER_MULT = { standard: 1, premium: 1.35, flagship: 1.8 };
-```
-
-## What to Wire for Production
-
-Right now the booking flow completes locally (shows a confirmation screen with a random reference number). Before going live, replace the `$('#confirmBtn').addEventListener(...)` handler in `script.js` with an actual POST to your backend, Formspree, Netlify Forms, or whatever booking system you use.
-
-Example with Formspree:
-
-```js
-$('#confirmBtn').addEventListener('click', async () => {
-  const res = await fetch('https://formspree.io/f/YOUR_FORM_ID', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-    body: JSON.stringify({
-      tour: state.currentTour.name,
-      ...state.form,
-      total: calcTotals().total
-    })
-  });
-  if (res.ok) {
-    closeModal();
-    populateConfirm();
-    openConfirm();
-  }
-});
-```
-
-## Browser Support
-
-- Modern evergreen browsers (Chrome, Firefox, Safari, Edge)
-- Uses CSS Grid, CSS Custom Properties, `aspect-ratio`, `backdrop-filter`, `IntersectionObserver`
-- No transpilation required; ships as ES2020
-
 ## License
 
 Code: yours to use, modify, and ship.
-Photography: Unsplash License (free for commercial and non-commercial use, no attribution required though credits are in the footer).
-Fonts: Fraunces, Inter, JetBrains Mono — all SIL Open Font License.
+Photography: Unsplash License. Fonts: Fraunces, Inter, JetBrains Mono — SIL Open Font License.

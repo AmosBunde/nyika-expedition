@@ -1,0 +1,27 @@
+{
+  "ci": {
+    "collect": {
+      "startServerCommand": "npx --yes http-server _lhstage -p 8080 -c-1 --silent",
+      "url": [
+        "http://localhost:8080/nyika-expedition/",
+        "http://localhost:8080/nyika-expedition/privacy/",
+        "http://localhost:8080/nyika-expedition/terms/"
+      ],
+      "numberOfRuns": 1,
+      "settings": {
+        "onlyCategories": ["performance", "accessibility", "best-practices", "seo"]
+      }
+    },
+    "assert": {
+      "assertions": {
+        "categories:accessibility": ["warn", { "minScore": 0.9 }],
+        "categories:seo": ["warn", { "minScore": 0.9 }],
+        "categories:best-practices": ["warn", { "minScore": 0.9 }],
+        "categories:performance": ["warn", { "minScore": 0.6 }]
+      }
+    },
+    "upload": {
+      "target": "temporary-public-storage"
+    }
+  }
+}
