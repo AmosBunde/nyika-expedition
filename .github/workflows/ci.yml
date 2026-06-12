@@ -9,56 +9,77 @@ permissions:
   contents: read
 
 jobs:
-  validate:
-    name: Lint & validate
+  build:
+    name: Build app (typecheck + prerender)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
-
-      - name: JavaScript syntax check
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - name: Install dependencies
+        working-directory: web
+        run: npm ci
+      - name: Typecheck
+        working-directory: web
+        run: npm run typecheck
+      - name: Build (prerender)
+        working-directory: web
+        run: npm run build
+      - name: Assert prerendered HTML has real content
+        working-directory: web
         run: |
-          node --check script.js
-          node --check sw.js
+          set -euo pipefail
+          root=build/client/nyika-expedition
+          grep -q "Nyika Expeditions" "$root/index.html"
+          grep -q "application/ld+json" "$root/index.html"
+          grep -q "Maasai Mara" "$root/index.html"
+          grep -q "Privacy Policy" "$root/privacy/index.html"
+          grep -q "Booking Terms" "$root/terms/index.html"
+          echo "Prerender content OK (home, privacy, terms)"
 
-      - name: Validate JSON / manifest / JSON-LD
-        run: |
-          node -e "JSON.parse(require('fs').readFileSync('site.webmanifest','utf8'))"
-          node -e "const h=require('fs').readFileSync('index.html','utf8');const m=h.match(/<script type=\"application\/ld\+json\">([\s\S]*?)<\/script>/);if(!m)throw new Error('no JSON-LD');JSON.parse(m[1]);console.log('JSON-LD OK')"
-
-      - name: Validate sitemap XML
-        run: python3 -c "import xml.dom.minidom; xml.dom.minidom.parse('sitemap.xml'); print('sitemap OK')"
-
-      - name: HTML validation
-        run: npx --yes html-validate@9 "**/*.html"
-
-      - name: CSS lint
-        run: npx --yes stylelint@16 "**/*.css"
-
-  lighthouse:
-    name: Lighthouse CI
+  audit:
+    name: Lighthouse + link check (non-blocking)
     runs-on: ubuntu-latest
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
-      - name: Run Lighthouse CI
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - name: Install dependencies
+        working-directory: web
+        run: npm ci
+      - name: Build (prerender)
+        working-directory: web
+        run: npm run build
+      - name: Stage built site under the Pages subpath
+        run: |
+          set -euo pipefail
+          rm -rf _lhstage && mkdir -p _lhstage/nyika-expedition
+          rsync -a web/build/client/ _lhstage/nyika-expedition/
+          cp -r _lhstage/nyika-expedition/nyika-expedition/. _lhstage/nyika-expedition/
+          rm -rf _lhstage/nyika-expedition/nyika-expedition
+          mv _lhstage/nyika-expedition/__spa-fallback.html _lhstage/nyika-expedition/404.html
+      - name: Link check (lychee)
+        uses: lycheeverse/lychee-action@v2
+        with:
+          args: >-
+            --no-progress --exclude-mail --accept 200,206,403,429
+            _lhstage/nyika-expedition/index.html
+            _lhstage/nyika-expedition/privacy/index.html
+            _lhstage/nyika-expedition/terms/index.html
+          fail: false
+      - name: Lighthouse CI
         uses: treosh/lighthouse-ci-action@v12
         with:
-          configPath: ./lighthouserc.json
+          configPath: ./web/lighthouserc.json
           uploadArtifacts: true
           temporaryPublicStorage: true
         continue-on-error: true
-
-  links:
-    name: Link check
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Check for broken links
-        uses: lycheeverse/lychee-action@v2
-        with:
-          args: --no-progress --exclude-mail --accept 200,206,403,429 "./**/*.html"
-          fail: false
