@@ -4,8 +4,11 @@
       "startServerCommand": "npx --yes http-server _lhstage -p 8080 -c-1 --silent",
       "url": [
         "http://localhost:8080/nyika-expedition/",
-        "http://localhost:8080/nyika-expedition/privacy/",
-        "http://localhost:8080/nyika-expedition/terms/"
+        "http://localhost:8080/nyika-expedition/destinations/",
+        "http://localhost:8080/nyika-expedition/expeditions/",
+        "http://localhost:8080/nyika-expedition/expeditions/serengeti/",
+        "http://localhost:8080/nyika-expedition/about/",
+        "http://localhost:8080/nyika-expedition/contact/"
       ],
       "numberOfRuns": 1,
       "settings": {
