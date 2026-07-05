@@ -1,0 +1,64 @@
+name: Image link-rot check
+
+# Every Unsplash photo ID in the app must still resolve on the CDN.
+# Pure script — no LLM, no cost. Opens/updates an issue when rot is found.
+
+on:
+  schedule:
+    - cron: "0 5 * * 1" # Mondays 05:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check:
+    name: Verify Unsplash IDs against the CDN
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6.0.3
+
+      - name: Curl-verify every photo ID
+        id: verify
+        run: |
+          set -euo pipefail
+          ids=$(grep -rhoE 'photo-[0-9]+-[a-f0-9]+' web/app | sort -u)
+          count=$(echo "$ids" | wc -l)
+          echo "Checking $count unique photo IDs"
+          broken=""
+          for id in $ids; do
+            code=$(curl -s -o /dev/null --max-time 30 -w "%{http_code}" \
+              "https://images.unsplash.com/$id?w=200&q=50&auto=format&fit=crop")
+            echo "$code $id"
+            if [ "$code" != "200" ]; then
+              broken="$broken$id (HTTP $code)\n"
+            fi
+          done
+          if [ -n "$broken" ]; then
+            printf 'broken<<EOF\n%b\nEOF\n' "$broken" >> "$GITHUB_OUTPUT"
+            echo "rot=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "rot=false" >> "$GITHUB_OUTPUT"
+            echo "All $count images healthy"
+          fi
+
+      - name: Open or update an issue on rot
+        if: steps.verify.outputs.rot == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BROKEN: ${{ steps.verify.outputs.broken }}
+        run: |
+          set -euo pipefail
+          title="Image link rot: Unsplash IDs no longer resolve"
+          body=$(printf 'The weekly image check found photo IDs that no longer return HTTP 200 from images.unsplash.com:\n\n```\n%s\n```\n\nReplace them in `web/app/lib/data/` (search each ID) with verified alternatives — see the imagery rules in the root CLAUDE.md.' "$BROKEN")
+          existing=$(gh issue list --state open --search "in:title \"Image link rot\"" --json number --jq '.[0].number // empty')
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --body "$body"
+          else
+            gh issue create --title "$title" --body "$body"
+          fi
+
+      - name: Fail the run on rot
+        if: steps.verify.outputs.rot == 'true'
+        run: exit 1

@@ -84,5 +84,9 @@ Enable it once under **Settings → Pages → Build and deployment → Source: G
 Actions**.
 
 Adding a destination or expedition is a data-only change: extend
-`web/app/lib/data/`, and the routes, prerender list, footer, JSON-LD, and cards
-pick it up automatically (update `public/sitemap.xml` alongside).
+`web/app/lib/data/`, and the routes, prerender list, footer, JSON-LD, cards,
+and sitemap (generated at build time from the prerendered routes) pick it up
+automatically. Change requests enter as briefs in `ops/` — see
+`ops/README.md` and `docs/AGENTIC_AUTOMATION_PLAN.md` for the automation
+pipeline (browser QA in CI, weekly image link-rot checks, and a monthly
+freshness agent gated on an `ANTHROPIC_API_KEY` secret).

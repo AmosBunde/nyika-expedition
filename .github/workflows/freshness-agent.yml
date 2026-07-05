@@ -1,0 +1,65 @@
+name: Freshness agent
+
+# Monthly sweep of the perishable facts in the catalog (visa rules, permit
+# prices, seasonal notes, flight times). Claude verifies them against current
+# sources and opens a PR only when something changed, with citations.
+#
+# SETUP REQUIRED: add an `ANTHROPIC_API_KEY` repository secret
+# (Settings → Secrets and variables → Actions). Until then the job
+# short-circuits as a no-op success. Estimated cost per run: ~$1–3.
+
+on:
+  schedule:
+    - cron: "0 6 1 * *" # 1st of the month, 06:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  freshness:
+    name: Verify perishable catalog facts
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check for API key
+        id: gate
+        env:
+          KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          if [ -n "$KEY" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "ANTHROPIC_API_KEY secret not set — skipping (see workflow header)."
+          fi
+
+      - uses: actions/checkout@v6.0.3
+        if: steps.gate.outputs.enabled == 'true'
+
+      - name: Run the freshness sweep
+        if: steps.gate.outputs.enabled == 'true'
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          prompt: |
+            You are the monthly freshness agent for the Nyika Expeditions
+            site. The perishable facts live in web/app/lib/data/kenya.ts and
+            web/app/lib/data/africa.ts: the `facts` arrays (visa rules and
+            fees, health requirements, currency notes, flying times), the
+            `seasons` notes, and permit prices mentioned in expedition
+            includes/overviews (e.g. gorilla permits).
+
+            1. Read both data files and list every dated or perishable claim.
+            2. Verify each against current authoritative sources via web
+               search. Today's date is in the environment.
+            3. If everything still holds, post a short summary and stop —
+               do NOT open a PR.
+            4. If anything changed, edit ONLY the affected data fields,
+               keeping the house voice (see root CLAUDE.md). Run
+               `cd web && npm ci && npm run typecheck && npm run build`.
+               Then create a branch `freshness/<year>-<month>`, commit with
+               a message listing each corrected fact, push, and open a PR
+               whose body cites a source URL for every change.
+          claude_args: |
+            --allowedTools "Bash,Read,Edit,Write,Glob,Grep,WebSearch,WebFetch"

@@ -88,21 +88,27 @@ Human editorial approval stays in the loop via PR review.
 
 ## The step-by-step build plan
 
-### Phase 1 — Make the repo fully agent-operable (1–2 days)
+### Phase 1 — Make the repo fully agent-operable — ✅ SHIPPED 2026-07-05
 
-1. Generate `sitemap.xml` in CI from the prerender list instead of by hand.
-2. Move the browser QA script (`qa.mjs`) into the repo and run it in CI
-   against the staged build — booking flow, filters, and forms become
-   enforced contracts.
-3. Add an `ops/` brief format: a small YAML/markdown file an agent (or human)
-   drops in to request a change ("new expedition", "price update"), giving
-   every automation a single entry point.
+1. ~~Generate `sitemap.xml` in CI from the prerender list.~~ Done:
+   `web/scripts/generate-sitemap.mjs` runs inside `npm run build` and derives
+   the sitemap from the routes that actually prerendered.
+2. ~~Move the browser QA script into the repo and run it in CI.~~ Done:
+   `web/e2e/run.mjs` (`npm run e2e`) stages the exact Pages layout and drives
+   nav, filters, the full booking flow (with totals derived from the rendered
+   price), and the contact form; blocking `e2e` job in `ci.yml`.
+3. ~~Add an `ops/` brief format.~~ Done: `ops/README.md` + templates for
+   new-destination, new-expedition, and price-update briefs.
 
-### Phase 2 — Content pipeline agents (week 1)
+### Phase 2 — Content pipeline agents (week 1) — partially shipped
 
 4. Scheduled **freshness agent** (monthly cron — Claude Code scheduled
    routine or GitHub Action): verify facts, image URLs, and external links;
    open PRs with citations.
+   - ✅ Image link-rot half shipped as a script-only weekly Action
+     (`image-check.yml`) — no LLM, no cost; opens an issue on rot.
+   - ✅ Fact-freshness half scaffolded (`freshness-agent.yml`, monthly) —
+     inert no-op until the `ANTHROPIC_API_KEY` repository secret is added.
 5. On-demand **catalog agent**: brief in → full destination/expedition PR
    out, images pre-verified, CI harness proving the build. Human merges.
 
