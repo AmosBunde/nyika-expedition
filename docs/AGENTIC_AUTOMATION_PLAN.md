@@ -126,6 +126,73 @@ Human editorial approval stays in the loop via PR review.
 
 ---
 
+## Cost implications
+
+_Model pricing as of July 2026 (Claude API, per million tokens): Opus 4.8
+$5 in / $25 out · Sonnet $3 / $15 (intro $2 / $10 through Aug 2026) ·
+Haiku 4.5 $1 / $5. Estimates below are order-of-magnitude, at moderate
+volume; actuals scale with traffic and content cadence._
+
+### Infrastructure baseline — effectively $0
+
+| Item | Cost |
+| --- | --- |
+| GitHub Pages hosting | $0 (public repo) |
+| GitHub Actions CI/deploy | $0 on public repos (~3 min/run; private repos have 2,000 free min/mo — ample) |
+| Unsplash imagery | $0 |
+| Cloudflare Worker form endpoint (Phase 3) | $0 on the free tier (100k requests/day); ~$5/mo if upgraded |
+
+The static-site architecture is what keeps this row near zero: there is no
+server, database, or CMS licence anywhere in the stack.
+
+### Agent run costs (LLM tokens)
+
+| Agent | Model tier | Frequency | Est. tokens/run (in / out) | Est. cost |
+| --- | --- | --- | --- | --- |
+| Freshness agent (facts, visas, permits) | Sonnet + web search | Monthly | ~300k / 20k | ~$1–3 /mo |
+| Image link-rot check | Script only (curl), no LLM | Weekly | — | ~$0 |
+| Catalog agent (new destination/expedition) | Opus | On demand | ~250k / 20k | ~$2–5 /item |
+| Visual QA (screenshots, ~10 routes × 2 viewports) | Sonnet (vision) | Per deploy | ~100k / 5k | ~$0.40 /deploy · ~$8 /mo at 20 deploys |
+| Enquiry triage + drafted reply | Sonnet | Per enquiry | ~5k / 1k | ~$0.03 /enquiry · ~$6 /mo at 200 enquiries |
+| Pre-departure dossier (PDF) | Opus + code execution | Per booking | ~100k / 20k | ~$1 /booking · ~$20 /mo at 20 bookings |
+| SEO crawl + schema audit | Sonnet | Monthly | ~300k / 10k | ~$1 /mo |
+| Editorial (journal + social cuts) | Opus | ~2 posts/mo | ~150k / 15k | ~$2–4 /mo |
+
+**Steady-state total: roughly $40–70/month** at the volumes above. The two
+terms that grow with the business — triage and dossiers — grow linearly with
+enquiries and bookings, at cents and ~a dollar each respectively, which is
+the right shape: cost tracks revenue events, not calendar time.
+
+### Cost levers (can cut the above 50–90%)
+
+- **Batches API** — 50% discount on anything non-urgent (freshness, SEO,
+  editorial all qualify; nothing there needs a synchronous answer).
+- **Prompt caching** — the catalog + house-voice prompt (~50k tokens) is the
+  shared prefix of almost every agent call; cached reads bill at ~0.1×, so
+  repeat runs pay pennies for context that would otherwise dominate.
+- **Model tiering** — Haiku ($1/$5) for mechanical checks (link validation,
+  schema lint), Sonnet for review/triage, Opus only where the output is
+  customer-facing prose or brand-critical design judgment.
+- **Scripts before models** — the image link-rot check is a curl loop; never
+  spend tokens on work a shell script does deterministically.
+
+### One-time build cost
+
+Phases 1–4 are mostly authored *by* an agent (Claude Code session time):
+realistically a few working sessions total. The Cloudflare Worker and webhook
+wiring in Phase 3 is the only piece with genuinely new moving parts.
+
+### The comparison that matters
+
+A catalog update that costs the agent pipeline ~$3 is 2–3 hours of a
+copywriter + a developer touch today; a triaged, drafted enquiry reply at
+$0.03 replaces the first 15 minutes of every inbox pass. At this scale the
+LLM bill is noise against even one hour of saved staff time per month —
+the real budget question is review time, which the PR-based design keeps to
+minutes per change.
+
+---
+
 ## What stays human
 
 Merge approval on every PR, final send on client correspondence, pricing
