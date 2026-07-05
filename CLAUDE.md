@@ -1,0 +1,29 @@
+# Nyika Expeditions — agent notes
+
+Pan-African luxury expedition site. React 19 + React Router 7 (framework mode,
+`ssr:false` + prerender → pure SSG), Tailwind v4 + shadcn, deployed to GitHub
+Pages under the `/nyika-expedition/` subpath. **There is no server runtime** —
+never add loaders/actions that need a server; everything must work as
+prerendered static HTML + client JS.
+
+## Where things live
+- All app code in `web/` (`cd web` before npm commands).
+- Content is data-only: `web/app/lib/data/kenya.ts` + `africa.ts`, typed by
+  `web/app/lib/catalog.ts`. Pricing/booking engine: `web/app/lib/booking.ts`.
+- Adding a destination/expedition: extend the data files — routes, prerender
+  list (`react-router.config.ts` imports the catalog), footer, JSON-LD, and
+  cards all derive from the catalog. Update `web/public/sitemap.xml` manually.
+- Design tokens in `web/app/app.css`. House style: warm stone canvas, Fraunces
+  display (+ italic accents), Inter body, JetBrains Mono metadata, forest-green
+  `--primary` reserved for CTAs/interactive only, photography-led.
+
+## Rules
+- Unsplash is the only permitted image host (CSP in `root.tsx`). Verify any new
+  photo ID returns HTTP 200 from images.unsplash.com before committing.
+- Voice: restrained, editorial, specific ("field log" register). No
+  exclamation marks, no travel-brochure clichés.
+- Bump `VERSION` in `web/public/sw.js` on releases.
+- Verify with: `npm run typecheck && npm run build`, then the CI grep
+  assertions in `.github/workflows/ci.yml` against `build/client/`.
+- Every marketing route must open with a dark image hero (the fixed Nav is
+  light-on-transparent at top of page).

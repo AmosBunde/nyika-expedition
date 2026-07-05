@@ -37,9 +37,16 @@ jobs:
           grep -q "Nyika Expeditions" "$root/index.html"
           grep -q "application/ld+json" "$root/index.html"
           grep -q "Maasai Mara" "$root/index.html"
+          grep -q "Tanzania" "$root/destinations/index.html"
+          grep -q "Gorilla Highlands" "$root/destinations/rwanda/index.html"
+          grep -q "Twelve routes" "$root/expeditions/index.html"
+          grep -q "Ngorongoro" "$root/expeditions/serengeti/index.html"
+          grep -q "Okavango" "$root/expeditions/okavango/index.html"
+          grep -q "Conservation" "$root/about/index.html"
+          grep -q "Write to the Guild" "$root/contact/index.html"
           grep -q "Privacy Policy" "$root/privacy/index.html"
           grep -q "Booking Terms" "$root/terms/index.html"
-          echo "Prerender content OK (home, privacy, terms)"
+          echo "Prerender content OK (home, destinations, expeditions, about, contact, legal)"
 
   audit:
     name: Lighthouse + link check (non-blocking)
@@ -73,6 +80,10 @@ jobs:
           args: >-
             --no-progress --exclude-mail --accept 200,206,403,429
             _lhstage/nyika-expedition/index.html
+            _lhstage/nyika-expedition/destinations/index.html
+            _lhstage/nyika-expedition/expeditions/index.html
+            _lhstage/nyika-expedition/about/index.html
+            _lhstage/nyika-expedition/contact/index.html
             _lhstage/nyika-expedition/privacy/index.html
             _lhstage/nyika-expedition/terms/index.html
           fail: false

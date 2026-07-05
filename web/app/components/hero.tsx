@@ -1,4 +1,6 @@
 import { ArrowRight } from "lucide-react"
+import { Link } from "react-router"
+
 import { Button } from "~/components/ui/button"
 
 const HERO_IMG =
@@ -27,7 +29,7 @@ export function Hero() {
         </div>
         <div className="text-right">
           <div className="text-white/90">S 01°17′ · E 36°49′</div>
-          <div>Nairobi, Kenya</div>
+          <div>Nairobi · Registry of Routes</div>
         </div>
       </div>
 
@@ -44,27 +46,44 @@ export function Hero() {
           them.
         </h1>
 
-        <div className="mt-10 flex flex-col gap-8 border-t border-white/15 pt-8 sm:flex-row sm:items-end sm:justify-between">
+        <div className="mt-10 flex flex-col gap-8 border-t border-white/15 pt-8 lg:flex-row lg:items-end lg:justify-between">
           <p className="max-w-xl text-base leading-relaxed text-balance text-white/80 sm:text-lg">
-            Fifteen years of quiet expedition work across East Africa. Guides
-            born to this landscape, camps leased from the communities who own
-            the land, logistics handled before your flight lands.
+            Fifteen years of quiet expedition work, now across the whole
+            continent — from the Mara's river crossings to the Namib's fog
+            coast, the Okavango's flooded channels to the last dunes of the
+            Sahara. Guides born to their landscapes, camps leased from the
+            communities who own the land.
           </p>
-          <div className="flex items-center gap-6">
-            <div>
-              <div className="font-mono-accent text-[11px] tracking-wide text-white/60">
-                Current departures
+          <div className="flex flex-wrap items-end gap-x-10 gap-y-6">
+            {(
+              [
+                ["Territories", "8"],
+                ["Routes", "12"],
+                ["Departures · 2026", "184"],
+              ] as const
+            ).map(([label, value]) => (
+              <div key={label}>
+                <div className="font-mono-accent text-[11px] tracking-wide text-white/60">
+                  {label}
+                </div>
+                <div className="font-display text-4xl text-white">{value}</div>
               </div>
-              <div className="font-display text-4xl text-white">184</div>
-              <div className="font-mono-accent text-[11px] text-white/60">
-                across the 2026 season
-              </div>
+            ))}
+            <div className="flex items-center gap-3">
+              <Button asChild size="lg">
+                <Link to="/expeditions">
+                  Begin Booking <ArrowRight className="size-4" />
+                </Link>
+              </Button>
+              <Button
+                asChild
+                size="lg"
+                variant="outline"
+                className="border-white/40 bg-transparent text-white hover:bg-white/10 hover:text-white"
+              >
+                <Link to="/destinations">The Territories</Link>
+              </Button>
             </div>
-            <Button asChild size="lg">
-              <a href="#expeditions">
-                Begin Booking <ArrowRight className="size-4" />
-              </a>
-            </Button>
           </div>
         </div>
       </div>

@@ -1,5 +1,6 @@
 import * as React from "react"
 import { ArrowUpRight, Menu } from "lucide-react"
+import { Link, NavLink } from "react-router"
 
 import {
   Sheet,
@@ -13,10 +14,10 @@ import { cn } from "~/lib/utils"
 import { useScrolled } from "~/lib/use-scroll"
 
 const LINKS = [
-  { href: "#expeditions", label: "Expeditions" },
-  { href: "#transfers", label: "Transfers" },
-  { href: "#method", label: "Method" },
-  { href: "#guild", label: "The Guild" },
+  { to: "/destinations", label: "Destinations" },
+  { to: "/expeditions", label: "Expeditions" },
+  { to: "/about", label: "The Guild" },
+  { to: "/contact", label: "Contact" },
 ]
 
 function Compass({ className }: { className?: string }) {
@@ -40,6 +41,11 @@ function Compass({ className }: { className?: string }) {
   )
 }
 
+/**
+ * Marketing chrome. Sits over the page hero while at the top (every marketing
+ * route opens with a dark image hero, so light-on-dark reads correctly), then
+ * gains a blurred canvas once scrolled.
+ */
 export function Nav() {
   const scrolled = useScrolled(80)
 
@@ -48,38 +54,51 @@ export function Nav() {
       className={cn(
         "fixed inset-x-0 top-0 z-40 transition-all duration-300",
         scrolled
-          ? "border-b border-border/70 bg-background/85 backdrop-blur-md"
-          : "border-b border-transparent"
+          ? "border-b border-border/70 bg-background/85 text-foreground backdrop-blur-md"
+          : "border-b border-transparent text-white"
       )}
     >
       <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-5 sm:px-8">
-        <a href="#" className="flex items-center gap-2.5">
-          <Compass className="size-8 text-foreground" />
+        <Link to="/" className="flex items-center gap-2.5">
+          <Compass className="size-8" />
           <span className="flex flex-col leading-none">
             <span className="font-display text-lg tracking-tight">Nyika</span>
-            <span className="font-mono-accent text-[10px] tracking-wide text-muted-foreground">
-              Expeditions · Since MMXI
+            <span
+              className={cn(
+                "font-mono-accent text-[10px] tracking-wide",
+                scrolled ? "text-muted-foreground" : "text-white/70"
+              )}
+            >
+              African Expeditions · MMXI
             </span>
           </span>
-        </a>
+        </Link>
 
         <div className="hidden items-center gap-8 md:flex">
           {LINKS.map((l) => (
-            <a
-              key={l.href}
-              href={l.href}
-              className="text-sm text-foreground/80 transition-colors hover:text-foreground"
+            <NavLink
+              key={l.to}
+              to={l.to}
+              className={({ isActive }) =>
+                cn(
+                  "text-sm transition-colors",
+                  scrolled
+                    ? "text-foreground/80 hover:text-foreground"
+                    : "text-white/85 hover:text-white",
+                  isActive && "underline decoration-primary underline-offset-8"
+                )
+              }
             >
               {l.label}
-            </a>
+            </NavLink>
           ))}
         </div>
 
         <div className="flex items-center gap-2">
           <Button asChild className="hidden sm:inline-flex">
-            <a href="#expeditions">
+            <Link to="/expeditions">
               Reserve <ArrowUpRight className="size-4" />
-            </a>
+            </Link>
           </Button>
 
           {/* Mobile menu */}
@@ -88,7 +107,11 @@ export function Nav() {
               <Button
                 variant="outline"
                 size="icon"
-                className="md:hidden"
+                className={cn(
+                  "md:hidden",
+                  !scrolled &&
+                    "border-white/40 bg-transparent text-white hover:bg-white/10 hover:text-white"
+                )}
                 aria-label="Open navigation menu"
               >
                 <Menu className="size-5" />
@@ -100,28 +123,28 @@ export function Nav() {
               </SheetTitle>
               <nav className="mt-2 flex flex-col px-2">
                 {LINKS.map((l) => (
-                  <SheetClose asChild key={l.href}>
-                    <a
-                      href={l.href}
+                  <SheetClose asChild key={l.to}>
+                    <Link
+                      to={l.to}
                       className="font-display rounded-md px-2 py-3 text-2xl transition-colors hover:text-primary"
                     >
                       {l.label}
-                    </a>
+                    </Link>
                   </SheetClose>
                 ))}
               </nav>
               <div className="mt-4 px-4">
                 <SheetClose asChild>
                   <Button asChild size="lg" className="w-full">
-                    <a href="#expeditions">
+                    <Link to="/expeditions">
                       Reserve an Expedition <ArrowUpRight className="size-4" />
-                    </a>
+                    </Link>
                   </Button>
                 </SheetClose>
               </div>
               <div className="mt-auto space-y-1 border-t px-4 py-5 text-sm">
                 <div>+254 20 440 1211</div>
-                <div>dossier@nyika.co.ke</div>
+                <div>dossier@nyika.africa</div>
                 <div className="text-muted-foreground">
                   Riverside Drive, Westlands · Nairobi
                 </div>

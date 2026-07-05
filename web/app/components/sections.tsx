@@ -1,17 +1,25 @@
-import { ArrowRight, Plane, ShieldCheck } from "lucide-react"
+import { ArrowRight, Leaf, Plane, ShieldCheck } from "lucide-react"
 import { Link } from "react-router"
 
 import { Button } from "~/components/ui/button"
 import { Badge } from "~/components/ui/badge"
-import { TRANSFERS, fmt } from "~/lib/tours"
+import { DestinationCard } from "~/components/destination-card"
+import { ExpeditionCard } from "~/components/expedition-card"
+import {
+  DESTINATIONS,
+  FEATURED_EXPEDITIONS,
+  REGIONS,
+} from "~/lib/catalog"
+import { TRANSFERS } from "~/lib/booking"
+import { fmt } from "~/lib/booking"
 
 const CREDENTIALS = [
   ["KATO", "No. 00412"],
-  ["KWS", "Partner"],
+  ["ATTA", "Member"],
   ["B-Corp", "Certified"],
   ["ISO", "9001:2015"],
+  ["ATOL", "T7684"],
   ["PAWS", "Founding"],
-  ["ATTA", "Member"],
 ] as const
 
 export function Credentials() {
@@ -19,7 +27,7 @@ export function Credentials() {
     <section className="border-y bg-secondary/40">
       <div className="mx-auto flex max-w-7xl flex-col gap-6 px-5 py-8 sm:px-8 lg:flex-row lg:items-center lg:gap-12">
         <div className="font-mono-accent shrink-0 text-[11px] tracking-wide text-muted-foreground">
-          Accredited &amp; Certified
+          Accredited &amp; Financially Protected
         </div>
         <div className="grid grow grid-cols-3 gap-x-6 gap-y-4 sm:grid-cols-6">
           {CREDENTIALS.map(([name, sub]) => (
@@ -30,6 +38,92 @@ export function Credentials() {
               </div>
             </div>
           ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+export function Territories() {
+  const featured = DESTINATIONS.filter((d) => d.featured)
+  return (
+    <section className="mx-auto max-w-7xl px-5 py-24 sm:px-8 sm:py-32">
+      <header className="flex flex-col justify-between gap-6 sm:flex-row sm:items-end">
+        <div className="max-w-2xl">
+          <div className="font-mono-accent text-[11px] tracking-wide text-primary">
+            The Territories · {REGIONS.length} Regions
+          </div>
+          <h2 className="font-display mt-3 text-4xl leading-tight sm:text-5xl">
+            Eight territories.
+            <br />
+            One registry of routes.
+          </h2>
+          <p className="mt-4 text-pretty text-muted-foreground">
+            From the grass kingdoms of East Africa to the fog deserts of the
+            southern coast and the high attic of the Atlas — every territory in
+            the registry is one we have worked for years, with resident guides
+            and camps held by long relationship.
+          </p>
+        </div>
+        <Button asChild variant="outline">
+          <Link to="/destinations">
+            All eight territories <ArrowRight className="size-4" />
+          </Link>
+        </Button>
+      </header>
+
+      <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        {featured.map((d, i) => (
+          <DestinationCard key={d.slug} dest={d} priority={i < 2} />
+        ))}
+      </div>
+    </section>
+  )
+}
+
+export function FeaturedExpeditions() {
+  const featured = FEATURED_EXPEDITIONS()
+  return (
+    <section className="border-y bg-secondary/30">
+      <div className="mx-auto max-w-7xl px-5 py-24 sm:px-8 sm:py-32">
+        <header className="max-w-2xl">
+          <div className="font-mono-accent text-[11px] tracking-wide text-primary">
+            The Expeditions · MMXXVI
+          </div>
+          <h2 className="font-display mt-3 text-4xl leading-tight sm:text-5xl">
+            Twelve routes. Fully outfitted.
+          </h2>
+          <p className="mt-4 text-pretty text-muted-foreground">
+            Each itinerary is a framework, not a script. Your guide carries the
+            authority to abandon the plan the moment a leopard descends a fig
+            tree. Transfers, park fees, camp accommodation, and full board
+            included. Five of the registry's most requested routes below.
+          </p>
+        </header>
+
+        <div className="mt-12 grid gap-6 sm:grid-cols-2">
+          {featured.map((e, i) => (
+            <ExpeditionCard key={e.slug} exp={e} priority={i < 2} />
+          ))}
+          <div className="reveal flex flex-col items-start justify-center rounded-xl border border-dashed p-8">
+            <div className="font-mono-accent text-[11px] tracking-wide text-muted-foreground">
+              Routes 01 – 12
+            </div>
+            <h3 className="font-display mt-2 text-3xl">
+              The full registry holds{" "}
+              <span className="text-primary italic">twelve</span> routes.
+            </h3>
+            <p className="mt-3 text-sm text-pretty text-muted-foreground">
+              Walking valleys, gorilla highlands, flooded deltas, two souths
+              and one sand sea — filter by region, season, or how far you like
+              to be from a road.
+            </p>
+            <Button asChild className="mt-6">
+              <Link to="/expeditions">
+                Browse all expeditions <ArrowRight className="size-4" />
+              </Link>
+            </Button>
+          </div>
         </div>
       </div>
     </section>
@@ -61,8 +155,9 @@ export function Method() {
             Every expedition begins with a{" "}
             <span className="text-primary italic">dossier</span> — a hand-bound
             brief of terrain notes, seasonal indicators, camp biographies, and a
-            meteorological forecast, assembled by our research fellow in
-            Nairobi. It arrives at your door four weeks before you do.
+            meteorological forecast, assembled by our research fellows in
+            Nairobi and Cape Town. It arrives at your door four weeks before
+            you do.
           </p>
           <div className="mt-12 grid gap-px overflow-hidden rounded-xl border bg-border sm:grid-cols-2 lg:grid-cols-4">
             {STEPS.map(([label, when], i) => (
@@ -89,20 +184,21 @@ export function Transfers() {
       <div className="mx-auto grid max-w-7xl gap-12 px-5 py-24 sm:px-8 sm:py-32 lg:grid-cols-[24rem_1fr]">
         <div>
           <div className="font-mono-accent text-[11px] tracking-wide text-background/60">
-            Airport Transfers
+            Gateway Transfers
           </div>
           <h2 className="font-display mt-3 text-4xl leading-tight sm:text-5xl">
-            From JKIA to the bush.
+            From the gateway to the bush.
           </h2>
           <p className="mt-5 text-pretty text-background/70">
-            Four tiers of transfer from Jomo Kenyatta International or Wilson
-            Airport directly to camp. Drivers track your flight in real time,
-            meet you past immigration, handle luggage, and brief you on day one
-            en route.
+            Four tiers of transfer from every gateway airport in the registry —
+            Nairobi, Kilimanjaro, Kigali, Maun, Windhoek, Cape Town, Marrakech
+            — directly to camp. Drivers track your flight in real time, meet
+            you past immigration, handle luggage, and brief you on day one en
+            route.
           </p>
           <div className="font-mono-accent mt-6 inline-flex items-center gap-2 rounded-md border border-background/20 px-3 py-2 text-xs text-background/80">
             <ShieldCheck className="size-4" />
-            24-hour flight monitoring
+            24-hour flight monitoring · every gateway
           </div>
         </div>
 
@@ -141,6 +237,68 @@ export function Transfers() {
   )
 }
 
+const CONSERVATION_PARTNERS = [
+  "Northern Rangelands Trust",
+  "Amboseli Trust for Elephants",
+  "Gorilla Doctors",
+  "Okavango Wilderness Project",
+  "Save the Rhino Trust Namibia",
+  "South Luangwa Conservation Society",
+]
+
+export function Conservation() {
+  return (
+    <section className="border-y bg-secondary/40">
+      <div className="mx-auto grid max-w-7xl gap-12 px-5 py-24 sm:px-8 sm:py-32 lg:grid-cols-[24rem_1fr]">
+        <div>
+          <div className="font-mono-accent flex items-center gap-2 text-[11px] tracking-wide text-primary">
+            <Leaf className="size-3.5" />
+            The Levy
+          </div>
+          <h2 className="font-display mt-3 text-4xl leading-tight sm:text-5xl">
+            Three percent, without exception.
+          </h2>
+          <p className="mt-5 text-pretty text-muted-foreground">
+            Every invoice since MMXI has carried a three percent conservation
+            levy, placed directly with the field organisations working the
+            landscapes we travel — never a marketing fund, always a named
+            project in your dossier.
+          </p>
+          <Button asChild variant="outline" className="mt-6">
+            <Link to="/about#conservation">
+              Where the levy lands <ArrowRight className="size-4" />
+            </Link>
+          </Button>
+        </div>
+
+        <div className="flex flex-col justify-center">
+          <div className="grid gap-px overflow-hidden rounded-xl border bg-border sm:grid-cols-3">
+            {(
+              [
+                ["USD 1.4M", "placed since MMXI"],
+                ["6", "field partners"],
+                ["100%", "traceable to project"],
+              ] as const
+            ).map(([value, label]) => (
+              <div key={label} className="reveal bg-card p-6">
+                <div className="font-display text-3xl">{value}</div>
+                <div className="font-mono-accent mt-1 text-[11px] tracking-wide text-muted-foreground">
+                  {label}
+                </div>
+              </div>
+            ))}
+          </div>
+          <ul className="font-mono-accent mt-6 flex flex-wrap gap-x-6 gap-y-2 text-xs text-muted-foreground">
+            {CONSERVATION_PARTNERS.map((p) => (
+              <li key={p}>· {p}</li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </section>
+  )
+}
+
 export function Cta() {
   return (
     <section className="mx-auto max-w-7xl px-5 py-24 sm:px-8 sm:py-32">
@@ -156,95 +314,15 @@ export function Cta() {
         </div>
         <div className="flex flex-col items-start gap-3">
           <Button asChild size="lg">
-            <a href="#expeditions">
+            <Link to="/expeditions">
               Select an Expedition <ArrowRight className="size-4" />
-            </a>
+            </Link>
           </Button>
           <div className="font-mono-accent text-sm text-muted-foreground">
-            Or call · +254 20 440 1211
+            Or call · +254 20 440 1211 · 24/7 field desk
           </div>
         </div>
       </div>
     </section>
-  )
-}
-
-const FOOTER_COLS = [
-  {
-    title: "Expeditions",
-    links: [
-      "Maasai Mara",
-      "Amboseli",
-      "Samburu",
-      "Laikipia",
-      "Private Journeys",
-    ],
-  },
-  {
-    title: "Offices",
-    links: ["Nairobi · HQ", "Arusha · TZ", "Kigali · RW", "London · UK"],
-  },
-  {
-    title: "The Guild",
-    links: ["Field Journal", "Our Guides", "Conservation", "Press"],
-  },
-] as const
-
-export function Footer() {
-  return (
-    <footer id="guild" className="border-t bg-background">
-      <div className="mx-auto max-w-7xl px-5 py-16 sm:px-8">
-        <div className="grid gap-10 lg:grid-cols-[1.5fr_1fr_1fr_1fr]">
-          <div>
-            <div className="font-display text-xl">Nyika</div>
-            <div className="font-mono-accent text-[10px] tracking-wide text-muted-foreground">
-              Expeditions · MMXI
-            </div>
-            <p className="mt-4 max-w-xs text-sm text-muted-foreground">
-              Riverside Drive, Westlands. We occupy the second floor of a
-              restored 1942 warehouse, six blocks from Wilson Airport.
-            </p>
-            <div className="font-mono-accent mt-4 space-y-1 text-sm">
-              <div>Nairobi 00100, Kenya</div>
-              <div>+254 20 440 1211</div>
-              <div>dossier@nyika.co.ke</div>
-            </div>
-          </div>
-          {FOOTER_COLS.map((col) => (
-            <div key={col.title}>
-              <div className="font-mono-accent text-[11px] tracking-wide text-muted-foreground">
-                {col.title}
-              </div>
-              <ul className="mt-3 space-y-2 text-sm">
-                {col.links.map((l) => (
-                  <li key={l}>
-                    <a
-                      href="#expeditions"
-                      className="transition-colors hover:text-primary"
-                    >
-                      {l}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
-
-        <div className="font-mono-accent mt-12 flex flex-col gap-3 border-t pt-6 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-          <div>© MMXXVI Nyika Expeditions Ltd. · KATO No. 00412</div>
-          <div className="flex flex-wrap gap-x-5 gap-y-1">
-            <Link to="/privacy" className="hover:text-foreground">
-              Privacy
-            </Link>
-            <Link to="/terms" className="hover:text-foreground">
-              Terms
-            </Link>
-            <span>S 01°17′ · E 36°49′</span>
-            <span>Composed in Nairobi</span>
-          </div>
-        </div>
-      </div>
-    </footer>
   )
 }

@@ -14,8 +14,8 @@ import { Textarea } from "~/components/ui/textarea"
 import { Badge } from "~/components/ui/badge"
 import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group"
 import { cn } from "~/lib/utils"
+import { type Expedition, destinationBySlug } from "~/lib/catalog"
 import {
-  type Tour,
   type BookingForm,
   type TierKey,
   type TransferKey,
@@ -27,7 +27,9 @@ import {
   emptyForm,
   fmt,
   formatDate,
-} from "~/lib/tours"
+} from "~/lib/booking"
+
+type Tour = Expedition
 
 const STEPS = ["Dates", "Transfer", "Details", "Confirm"] as const
 
@@ -188,7 +190,9 @@ export function BookingModal({
                 {step === 1 && (
                   <StepDates tour={tour} form={form} set={set} today={today} />
                 )}
-                {step === 2 && <StepTransfer form={form} set={set} />}
+                {step === 2 && (
+                  <StepTransfer tour={tour} form={form} set={set} />
+                )}
                 {step === 3 && <StepDetails form={form} set={set} />}
                 {step === 4 && (
                   <StepConfirm tour={tour} form={form} totals={totals} />
@@ -446,18 +450,24 @@ function Stepper({
 
 /* ---------- Step 2: Transfer ---------- */
 function StepTransfer({
+  tour,
   form,
   set,
 }: {
+  tour: Tour
   form: BookingForm
   set: <K extends keyof BookingForm>(k: K, v: BookingForm[K]) => void
 }) {
+  const gateway = destinationBySlug(tour.destination)?.gateway
+  const intro = gateway
+    ? `From ${gateway.airport} (${gateway.code}), ${gateway.city}, to camp. Drivers track your flight in real time, meet past immigration, and handle luggage.`
+    : "From your gateway airport to camp. Drivers track your flight in real time, meet past immigration, and handle luggage."
   return (
     <div className="space-y-6">
       <Heading
         kicker="Chapter Two · of Four"
-        title="Airport transfer?"
-        intro="From Jomo Kenyatta or Wilson airport to camp. Drivers track your flight in real time, meet past immigration, and handle luggage."
+        title="Gateway transfer?"
+        intro={intro}
       />
 
       <RadioGroup

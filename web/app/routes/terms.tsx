@@ -98,7 +98,7 @@ export default function Terms() {
       <h2>Contact</h2>
       <p>
         Questions about a booking? Email{" "}
-        <a href="mailto:dossier@nyika.co.ke">dossier@nyika.co.ke</a> or call
+        <a href="mailto:dossier@nyika.africa">dossier@nyika.africa</a> or call
         +254 20 440 1211.
       </p>
     </LegalPage>

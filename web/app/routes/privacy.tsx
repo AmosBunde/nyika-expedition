@@ -28,7 +28,7 @@ export default function Privacy() {
       <p>
         Nyika Expeditions Ltd., Riverside Drive, Westlands, Nairobi 00100,
         Kenya. For any privacy question, contact{" "}
-        <a href="mailto:dossier@nyika.co.ke">dossier@nyika.co.ke</a>.
+        <a href="mailto:dossier@nyika.africa">dossier@nyika.africa</a>.
       </p>
 
       <h2>What we collect</h2>
@@ -99,7 +99,7 @@ export default function Privacy() {
         Subject to applicable law, you may request access to, correction of, or
         deletion of your personal information, and you may object to or restrict
         certain processing. To exercise any right, email{" "}
-        <a href="mailto:dossier@nyika.co.ke">dossier@nyika.co.ke</a>.
+        <a href="mailto:dossier@nyika.africa">dossier@nyika.africa</a>.
       </p>
 
       <h2>Changes</h2>

@@ -8,7 +8,7 @@
    GitHub Pages project subpath (/nyika-expedition/).
    ============================================================ */
 
-const VERSION = 'nyika-v3';
+const VERSION = 'nyika-v4';
 const PRECACHE = `precache-${VERSION}`;
 const RUNTIME = `runtime-${VERSION}`;
 

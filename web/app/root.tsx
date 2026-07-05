@@ -10,11 +10,12 @@ import {
 
 import type { Route } from "./+types/root"
 import "./app.css"
+import { DESTINATIONS, EXPEDITIONS } from "~/lib/catalog"
 
 const BASE = "/nyika-expedition"
 const ORIGIN = "https://amosbunde.github.io/nyika-expedition/"
 
-// schema.org structured data (mirrors the original static site).
+// schema.org structured data, generated from the live catalog.
 const JSON_LD = {
   "@context": "https://schema.org",
   "@graph": [
@@ -28,10 +29,10 @@ const JSON_LD = {
       image:
         "https://images.unsplash.com/photo-1489392191049-fc10c97e64b6?w=1200&h=630&fit=crop&q=80&auto=format",
       description:
-        "Kenya-based safari outfitter composing hand-crafted expeditions to the Maasai Mara, Amboseli, Samburu, and Laikipia since 2011.",
+        "African expedition outfitter composing hand-crafted journeys across eight territories — Kenya, Tanzania, Rwanda, Botswana, Zambia, Namibia, South Africa, and Morocco — since 2011.",
       foundingDate: "2011",
       telephone: "+254-20-440-1211",
-      email: "dossier@nyika.co.ke",
+      email: "dossier@nyika.africa",
       priceRange: "$$$$",
       slogan: "We do not run safaris. We compose them.",
       address: {
@@ -41,7 +42,10 @@ const JSON_LD = {
         postalCode: "00100",
         addressCountry: "KE",
       },
-      areaServed: { "@type": "Country", name: "Kenya" },
+      areaServed: DESTINATIONS.map((d) => ({
+        "@type": "Country",
+        name: d.country,
+      })),
       aggregateRating: {
         "@type": "AggregateRating",
         ratingValue: "4.96",
@@ -61,39 +65,18 @@ const JSON_LD = {
     {
       "@type": "ItemList",
       name: "Nyika Expeditions · 2026 Season",
-      itemListElement: [
-        [
-          "Maasai Mara · Migration Corridor",
-          "Five days tracking the Great Migration across the Mara plains, with private conservancy access and dawn balloon ascents.",
-          "4280",
-        ],
-        [
-          "Amboseli · Under Kilimanjaro",
-          "Four days among the celebrated elephant families of Amboseli, with Kilimanjaro rising clear at dawn and dusk.",
-          "3640",
-        ],
-        [
-          "Samburu · The Arid North",
-          "Six days in the semi-arid frontier of reticulated giraffe, Grevy's zebra, gerenuk and beisa oryx, with Samburu warrior escorts.",
-          "5120",
-        ],
-        [
-          "Laikipia · Private Rangelands",
-          "Seven days across Laikipia's private conservancies, with black rhino at Lewa, Ol Pejeta, horseback safari and helicopter transfer.",
-          "6890",
-        ],
-      ].map(([name, description, price], i) => ({
+      itemListElement: EXPEDITIONS.map((e, i) => ({
         "@type": "ListItem",
         position: i + 1,
         item: {
           "@type": "TouristTrip",
-          name,
-          description,
-          url: `${ORIGIN}#expeditions`,
+          name: `${e.name} · ${e.sub}`,
+          description: e.desc,
+          url: `${ORIGIN}expeditions/${e.slug}/`,
           provider: { "@id": `${ORIGIN}#organization` },
           offers: {
             "@type": "Offer",
-            price,
+            price: String(e.price),
             priceCurrency: "USD",
             availability: "https://schema.org/InStock",
           },

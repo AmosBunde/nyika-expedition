@@ -12,8 +12,11 @@ export function useScrolled(threshold = 80) {
   return scrolled
 }
 
-/** Adds `.is-visible` to `.reveal` elements as they enter the viewport. */
-export function useReveal() {
+/**
+ * Adds `.is-visible` to `.reveal` elements as they enter the viewport.
+ * Pass a `key` (e.g. the pathname) to re-scan after client-side navigation.
+ */
+export function useReveal(key?: unknown) {
   React.useEffect(() => {
     const reveal = (el: Element) => el.classList.add("is-visible")
     // Without IntersectionObserver, reveal everything immediately so content is
@@ -35,5 +38,5 @@ export function useReveal() {
     )
     document.querySelectorAll(".reveal").forEach((el) => io.observe(el))
     return () => io.disconnect()
-  }, [])
+  }, [key])
 }
